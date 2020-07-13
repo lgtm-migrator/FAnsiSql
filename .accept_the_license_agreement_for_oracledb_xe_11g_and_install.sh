@@ -7,10 +7,9 @@ wget -nv https://raw.githubusercontent.com/Vincit/travis-oracledb-xe/master/pack
 wget -nv https://raw.githubusercontent.com/Vincit/travis-oracledb-xe/master/packages/oracle-xe-11.2.0-1.0.x86_64.rpm.zip.ab
 wget -nv https://raw.githubusercontent.com/Vincit/travis-oracledb-xe/master/packages/oracle-xe-11.2.0-1.0.x86_64.rpm.zip.ac
 wget -nv https://raw.githubusercontent.com/Vincit/travis-oracledb-xe/master/packages/oracle-xe-11.2.0-1.0.x86_64.rpm.zip.ad
-cat oracle-xe-11.2.0-1.0.x86_64.rpm.zip.* > $HOME/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
-export ORACLE_FILE="oracle-xe-11.2.0-1.0.x86_64.rpm.zip"
-unzip -j "$(basename $ORACLE_FILE)" "*/*.rpm"
-mv oracle-*/rpm $HOME/
+cat oracle-xe-11.2.0-1.0.x86_64.rpm.zip.* > oracle-xe-11.2.0-1.0.x86_64.rpm.zip
+unzip -j oracle-xe-11.2.0-1.0.x86_64.rpm.zip "*/*.rpm"
+mv oracle-*.rpm $HOME/
 fi
 
 
