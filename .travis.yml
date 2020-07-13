@@ -5,6 +5,7 @@ language: generic
 cache:
   directories:
   - $HOME/.nuget
+  - $HOME/oracle*.rpm
 
 addons:
   postgresql: "10"
@@ -29,9 +30,10 @@ services:
 
 before_install:
 - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-- sudo apt-get install -y --no-install-recommends mssql-tools mssql-server dotnet-runtime-2.2 dotnet-sdk-3.1 nuget
+- sudo apt-get install -y --no-install-recommends mssql-tools mssql-server dotnet-runtime-2.2 dotnet-sdk-3.1 nuget bc libaio1 rpm unzip
+- sudo systemctl stop mssql-server
 - sudo /opt/mssql/bin/mssql-conf -n setup accept-eula
-- curl https://raw.githubusercontent.com/Vincit/travis-oracledb-xe/master/accept_the_license_agreement_for_oracledb_xe_11g_and_install.sh | bash
+- ./.accept_the_license_agreement_for_oracledb_xe_11g_and_install.sh
 
 script:
  - dotnet restore
