@@ -13,7 +13,7 @@
           </TestDatabase>
          <TestDatabase>
             <DatabaseType>Oracle</DatabaseType>
-            <ConnectionString>Data Source=localhost:1521;User Id=travis;Password=travis;</ConnectionString>
+            <ConnectionString>Data Source=localhost:1521;User Id=sys;Password=travis;</ConnectionString>
           </TestDatabase>
 
          <TestDatabase>
