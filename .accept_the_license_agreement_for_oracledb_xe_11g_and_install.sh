@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 if [ ! -e $HOME/oracle-xe-*.rpm ]
 then
