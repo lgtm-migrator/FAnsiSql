@@ -30,9 +30,10 @@ services:
 
 before_install:
 - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-- sudo apt-get install -y --no-install-recommends mssql-tools mssql-server dotnet-runtime-2.2 dotnet-sdk-3.1 nuget bc libaio1 rpm unzip
+- sudo apt-get install -y --no-install-recommends mssql-tools mssql-server dotnet-runtime-2.2 dotnet-sdk-3.1 nuget bc libaio1 rpm unzip dos2unix
 - sudo systemctl stop mssql-server
 - sudo /opt/mssql/bin/mssql-conf -n setup accept-eula
+- dos2unix ./.accept_the_license_agreement_for_oracledb_xe_11g_and_install.sh
 - ./.accept_the_license_agreement_for_oracledb_xe_11g_and_install.sh
 
 script:
