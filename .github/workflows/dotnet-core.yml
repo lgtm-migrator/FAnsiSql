@@ -16,7 +16,7 @@ jobs:
       oci:
         image: wnameless/oracle-xe-11g-r2:latest
         ports:
-          - 49161:1521
+          - 1521:1521
         options: --name=oci
       postgres:
         image: postgres:latest
