@@ -6,7 +6,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-...
+
+## [1.0.7] - 2021-05-18
+
+### Added
+
+- String parse errors in bulk insert now include the column name
+
+### Changed
+
+- Bump Oracle.ManagedDataAccess.Core from 2.19.100 to 2.19.101
+- Bump Npgsql from 5.0.1.1 to 5.0.5
+- Bump MySqlConnector from 1.2.1 to 1.3.8
+
+## [1.0.6] - 2020-09-16
+
+### Added
+
+- Support for ExplicitDateFormats in CreateTable and BulkInsert
+
+## [1.0.5] - 2020-08-13
+
+### Added
+
+- Updated IQuerySyntaxHelper to expose properties (OpenQualifier, CloseQualifier, DatabaseTableSeparator, IllegalNameChars)
+
+### Fixed
+
+- Fixed bug in repeated calls to GetRuntimeName and EnsureWrapped when a column/table name had escaped qualifiers (e.g. `[Hey]]There]`)
+ 
+## [1.0.4] - 2020-08-10
+
+### Fixed
+
+- Fixed bug in CreateSchema (Sql Server) where a schema with the same name already exists.  This bug was introduced in 1.0.3 (only affects repeated calls).
+
+## [1.0.3] - 2020-08-06
+
+### Changed
+
+- Updated MySqlConnector to 1.0.0
+
+### Added
+
+- Added `GetWrappedName` method for columns/tables for when a full expression is not allowed but wrapping is still needed. 
 
 ## [1.0.2] - 2020-07-07
 
@@ -231,7 +274,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Drop table to work correctly with Views
 - Exists now works correctly for Views (previously it would return true if there was no view but a table with the same name)
 
-[Unreleased]: https://github.com/HicServices/FAnsiSql/compare/1.0.2...develop
+[Unreleased]: https://github.com/HicServices/FAnsiSql/compare/1.0.7...develop
+[1.0.7]: https://github.com/HicServices/FAnsiSql/compare/1.0.6...1.0.7
+[1.0.6]: https://github.com/HicServices/FAnsiSql/compare/1.0.5...1.0.6
+[1.0.5]: https://github.com/HicServices/FAnsiSql/compare/1.0.4...1.0.5
+[1.0.4]: https://github.com/HicServices/FAnsiSql/compare/1.0.3...1.0.4
+[1.0.3]: https://github.com/HicServices/FAnsiSql/compare/1.0.2...1.0.3
 [1.0.2]: https://github.com/HicServices/FAnsiSql/compare/1.0.1...1.0.2
 [1.0.1]: https://github.com/HicServices/FAnsiSql/compare/0.11.0...1.0.1
 [0.11.0]: https://github.com/HicServices/FAnsiSql/compare/0.10.13...0.11.0

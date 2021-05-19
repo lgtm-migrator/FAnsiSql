@@ -49,6 +49,7 @@ namespace FAnsi.Discovery
         /// </summary>
         /// <param name="targetTable"></param>
         /// <param name="connection"></param>
+        /// <param name="culture">For parsing string date expressions etc</param>
         protected BulkCopy(DiscoveredTable targetTable, IManagedConnection connection,CultureInfo culture)
         {
             Culture = culture;
@@ -122,13 +123,26 @@ namespace FAnsi.Discovery
                     var decider = deciders[dataType];
                     
                     //if it's a DateTime decider then guess DateTime culture based on values in the table
-                    if(decider is DateTimeTypeDecider dtDecider)
-                        dtDecider.GuessDateFormat(dt.Rows.Cast<DataRow>().Take(500).Select(r=>r[kvp.Key] as string));
+                    if(decider is DateTimeTypeDecider)
+                    {
+                        //also use this one incase the user has set up explicit stuff on it e.g. Culture/Settings
+                        decider = DateTimeDecider;
+                        DateTimeDecider.GuessDateFormat(dt.Rows.Cast<DataRow>().Take(500).Select(r=>r[kvp.Key] as string));
+                    }
+                        
 
                     foreach(DataRow dr in dt.Rows)
                     {
-                        //parse the value
-                        dr[newColumn] = decider.Parse(dr[kvp.Key] as string)??DBNull.Value;
+                        try
+                        {
+                            //parse the value
+                            dr[newColumn] = decider.Parse(dr[kvp.Key] as string)??DBNull.Value;
+
+                        }
+                        catch(Exception ex)
+                        {
+                            throw new Exception($"Failed to parse value '{dr[kvp.Key]}' in column '{kvp.Key}'",ex);
+                        }
                     }
 
                     //if the DataColumn is part of the Primary Key of the DataTable (in memory)

@@ -10,37 +10,99 @@ namespace FAnsiTests.Query
 {
     class QuerySyntaxHelperTests
     {
+        
+
         //Oracle always uppers everything because... Oracle
-        [TestCase(DatabaseType.Oracle,true)]
-        [TestCase(DatabaseType.MicrosoftSQLServer,false)]
-        [TestCase(DatabaseType.MySql,false)]
-        [TestCase(DatabaseType.PostgreSql,false)]
-        public void SyntaxHelperTest_GetRuntimeName(DatabaseType t,bool expectUpper)
+        [TestCase(DatabaseType.Oracle,"CHI","\"TEST_ScratchArea\".public.\"Biochemistry\".\"chi\"")]
+        [TestCase(DatabaseType.PostgreSql,"chi","\"TEST_ScratchArea\".public.\"Biochemistry\".\"chi\"")]
+                
+        [TestCase(DatabaseType.Oracle,"FRANK","count(*) as Frank")]
+        [TestCase(DatabaseType.PostgreSql,"Frank","count(*) as Frank")]
+
+        [TestCase(DatabaseType.Oracle,"FRANK","count(cast(1 as int)) as Frank")]
+        [TestCase(DatabaseType.PostgreSql,"Frank","count(cast(1 as int)) as Frank")]
+                
+        [TestCase(DatabaseType.Oracle,"FRANK","count(cast(1 as int)) as \"Frank\"")]
+        [TestCase(DatabaseType.PostgreSql,"Frank","count(cast(1 as int)) as \"Frank\"")]
+        [TestCase(DatabaseType.MySql,"Frank","count(cast(1 as int)) as `Frank`")]
+        [TestCase(DatabaseType.MicrosoftSQLServer,"Frank","count(cast(1 as int)) as [Frank]")]
+
+        [TestCase(DatabaseType.Oracle,"FRANK","[mydb].[mytbl].[mycol] as Frank")]
+        [TestCase(DatabaseType.PostgreSql,"Frank","[mydb].[mytbl].[mycol] as Frank")]
+        [TestCase(DatabaseType.MicrosoftSQLServer,"Frank","[mydb].[mytbl].[mycol] as Frank")]
+        [TestCase(DatabaseType.MySql,"Frank","[mydb].[mytbl].[mycol] as Frank")]
+
+        [TestCase(DatabaseType.Oracle,"ZOMBIE","dbo.GetMyCoolThing(\"Magic Fun Times\") as zombie")]
+        [TestCase(DatabaseType.MicrosoftSQLServer,"zombie","dbo.GetMyCoolThing(\"Magic Fun Times\") as zombie")]
+        [TestCase(DatabaseType.MySql,"zombie","dbo.GetMyCoolThing(\"Magic Fun Times\") as zombie")]
+        [TestCase(DatabaseType.PostgreSql,"zombie","dbo.GetMyCoolThing(\"Magic Fun Times\") as zombie")]
+        
+        [TestCase(DatabaseType.Oracle,"MYCOL","\"mydb\".\"mytbl\".\"mycol\"")]
+        [TestCase(DatabaseType.MicrosoftSQLServer,"mycol","[mydb].[mytbl].[mycol]")]
+        [TestCase(DatabaseType.MySql,"mycol","`mydb`.`mytbl`.`mycol`")]
+        [TestCase(DatabaseType.PostgreSql,"mycol","\"mydb\".\"mytbl\".\"mycol\"")]        
+        public void SyntaxHelperTest_GetRuntimeName(DatabaseType dbType,  string expected, string forInput)
         {
             ImplementationManager.Load(new DirectoryInfo(TestContext.CurrentContext.TestDirectory));
 
-            var syntaxHelper = ImplementationManager.GetImplementation(t).GetQuerySyntaxHelper();
+            var syntaxHelper = ImplementationManager.GetImplementation(dbType).GetQuerySyntaxHelper();
 
-            Assert.AreEqual(expectUpper?"CHI":"chi",syntaxHelper.GetRuntimeName("\"TEST_ScratchArea\".public.\"Biochemistry\".\"chi\""));
+            Assert.AreEqual(expected,syntaxHelper.GetRuntimeName(forInput));
+        }
 
-            Assert.AreEqual(expectUpper?"FRANK":"Frank",syntaxHelper.GetRuntimeName("count(*) as Frank"));
-            Assert.AreEqual(expectUpper?"FRANK":"Frank",syntaxHelper.GetRuntimeName("count(cast(1 as int)) as Frank"));
-            Assert.AreEqual(expectUpper?"FRANK":"Frank",syntaxHelper.GetRuntimeName("[mydb].[mytbl].[mycol] as Frank"));
-            Assert.AreEqual(expectUpper?"FRANK":"Frank",syntaxHelper.GetRuntimeName("[mydb].[mytbl].[mycol] as [Frank]"));
-            Assert.AreEqual(expectUpper?"FRANK":"Frank",syntaxHelper.GetRuntimeName("\"Mydb\".\"mytbl\".\"mycol\" as \"Frank\""));
-            Assert.AreEqual(expectUpper?"FRANK":"Frank",syntaxHelper.GetRuntimeName("[mydb].[mytbl].[mycol] as `Frank`"));
-            Assert.AreEqual(expectUpper?"MYCOL":"mycol",syntaxHelper.GetRuntimeName("[mydb].[mytbl].[mycol]"));
-            Assert.AreEqual(expectUpper?"ZOMBIE":"zombie",syntaxHelper.GetRuntimeName("dbo.GetMyCoolThing(\"Magic Fun Times\") as zombie"));
-                        
-            Assert.AreEqual(expectUpper?"FRANK":"Frank",syntaxHelper.GetRuntimeName("`mydb`.`mytbl`.`mycol` as `Frank`"));
+        /// <summary>
+        /// Tests that no matter how many times you call EnsureWrapped or GetRuntimeName you always end up with the format that matches the last method call
+        /// </summary>
+        /// <param name="dbType"></param>
+        /// <param name="runtime"></param>
+        /// <param name="wrapped"></param>
+        [TestCase(DatabaseType.MySql,"Fra`nk","`Fra``nk`")]
+        [TestCase(DatabaseType.MySql,"Fra``nk`","`Fra````nk```")]
+        [TestCase(DatabaseType.MicrosoftSQLServer,"Fra]nk","[Fra]]nk]")]
+        [TestCase(DatabaseType.MicrosoftSQLServer,"Fra]]nk]","[Fra]]]]nk]]]")]
+        [TestCase(DatabaseType.PostgreSql,"Fra\"nk","\"Fra\"\"nk\"")]
+        [TestCase(DatabaseType.PostgreSql,"Fra\"\"nk\"","\"Fra\"\"\"\"nk\"\"\"")]
+         public void SyntaxHelperTest_GetRuntimeName_MultipleCalls(DatabaseType dbType,  string runtime, string wrapped)
+        {
+            // NOTE: Oracle does not support such shenanigans https://docs.oracle.com/cd/B19306_01/server.102/b14200/sql_elements008.htm
+            // "neither quoted nor nonquoted identifiers can contain double quotation marks or the null character (\0)."
 
-            Assert.AreEqual(expectUpper?"FRANK":"Frank",syntaxHelper.GetRuntimeName("\"mydb\".\"mytbl\".\"mycol\" as \"Frank\""));
+            ImplementationManager.Load(new DirectoryInfo(TestContext.CurrentContext.TestDirectory));
 
-            
-            Assert.IsTrue(syntaxHelper.TryGetRuntimeName("\"mydb\".\"mytbl\".\"mycol\" as \"Frank\"",out string name));
-            Assert.AreEqual(expectUpper?"FRANK":"Frank",name);
+            var syntaxHelper = ImplementationManager.GetImplementation(dbType).GetQuerySyntaxHelper();
+
+            var currentName = runtime;
+
+            for(int i=0;i<10;i++)
+            {
+                if(i%2 ==0 )
+                {
+                    Assert.AreEqual(runtime,currentName);
+                    currentName = syntaxHelper.EnsureWrapped(currentName);
+                    currentName = syntaxHelper.EnsureWrapped(currentName);
+                    currentName = syntaxHelper.EnsureWrapped(currentName);
+                }
+                else
+                {
+                    Assert.AreEqual(wrapped,currentName);
+                    currentName = syntaxHelper.GetRuntimeName(currentName);
+                    currentName = syntaxHelper.GetRuntimeName(currentName);
+                    currentName = syntaxHelper.GetRuntimeName(currentName);
+                }
+            }
         }
         
+        [TestCaseSource(typeof(All),nameof(All.DatabaseTypes))]
+        public void EnsureWrapped_MultipleCalls(DatabaseType dbType)
+        {
+            var syntax = new QuerySyntaxHelperFactory().Create(dbType);
+
+            string once = syntax.EnsureWrapped("ff");
+            string twice = syntax.EnsureWrapped(once);
+
+            Assert.AreEqual(once,twice);
+        }
+
         [TestCaseSource(typeof(All),nameof(All.DatabaseTypes))]
         public void SyntaxHelperTest_GetRuntimeName_Impossible(DatabaseType t)
         {
@@ -65,8 +127,8 @@ namespace FAnsiTests.Query
             Assert.AreEqual("FRANK",syntaxHelper.GetRuntimeName("count(*) as Frank"));
             Assert.AreEqual("FRANK",syntaxHelper.GetRuntimeName("count(cast(1 as int)) as Frank"));
             Assert.AreEqual("FRANK",syntaxHelper.GetRuntimeName("count(cast(1 as int)) as \"Frank\""));
-            Assert.AreEqual("FRANK",syntaxHelper.GetRuntimeName("[mydb].[mytbl].[mycol] as Frank"));
-            Assert.AreEqual("MYCOL",syntaxHelper.GetRuntimeName("[mydb].[mytbl].[mycol]"));
+            Assert.AreEqual("FRANK",syntaxHelper.GetRuntimeName("\"mydb\".\"mytbl\".\"mycol\" as Frank"));
+            Assert.AreEqual("MYCOL",syntaxHelper.GetRuntimeName("\"mydb\".\"mytbl\".\"mycol\""));
         }
 
 

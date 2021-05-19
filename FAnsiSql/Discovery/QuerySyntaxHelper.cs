@@ -19,10 +19,16 @@ namespace FAnsi.Discovery
     {
         public virtual string DatabaseTableSeparator => ".";
         
+        /// <inheritdoc/>
         public abstract int MaximumDatabaseLength { get; }
-        public abstract int MaximumTableLength { get; }
-        public abstract int MaximumColumnLength { get; }
 
+        /// <inheritdoc/>
+        public abstract int MaximumTableLength { get; }
+
+        /// <inheritdoc/>
+        public abstract int MaximumColumnLength { get; }
+        
+        /// <inheritdoc/>
         public virtual char[] IllegalNameChars { get; } = new []{'.','(',')'};
 
         /// <summary>
@@ -35,6 +41,12 @@ namespace FAnsi.Discovery
         /// Symbols (for all database types) which denote wrapped entity names e.g. [dbo].[mytable] contains qualifiers '[' and ']'
         /// </summary>
         public static char[] TableNameQualifiers = { '[', ']', '`' ,'"'};
+
+        /// <inheritdoc/>
+        public abstract string OpenQualifier {get;}
+        
+        /// <inheritdoc/>
+        public abstract string CloseQualifier {get;}
 
         public ITypeTranslater TypeTranslater { get; private set; }
         
@@ -123,6 +135,7 @@ namespace FAnsi.Discovery
             DatabaseType = databaseType;
         }
 
+        
         public virtual string GetRuntimeName(string s)
         {
             if (string.IsNullOrWhiteSpace(s))
@@ -138,9 +151,34 @@ namespace FAnsi.Discovery
             if (s.IndexOfAny(new char[]{'(',')' }) != -1)
                 throw new RuntimeNameException("Could not determine runtime name for Sql:'" + s + "'.  It had brackets and no alias.  Try adding ' as mycol' to the end.");
 
-            return s.Substring(s.LastIndexOf(".") + 1).Trim('[', ']', '`','"');
+            //Last symbol with no whitespace
+            var lastWord = s.Substring(s.LastIndexOf(".") + 1)?.Trim();
+
+            if(string.IsNullOrWhiteSpace(lastWord) || lastWord.Length<2)
+                return lastWord;
+
+            //trim off any brackets e.g. return "My Table" for "[My Table]"
+            if(lastWord.StartsWith(OpenQualifier) && lastWord.EndsWith(CloseQualifier))
+            {
+                return UnescapeWrappedNameBody(lastWord.Substring(1,lastWord.Length -2));
+            }
+                
+
+            return lastWord;
         }
-        
+
+        /// <summary>
+        /// <para>Removes qualifiers/escape sequences in the suplied <paramref name="name"/>.  This should for example convert MySql double backtick escape sequences fi``sh into singles (fi`sh).</para>
+        /// 
+        /// <para>Method is only called after a successful detection and stripping of <see cref="OpenQualifier"/> and <see cref="CloseQualifier"/></para>
+        /// </summary>
+        /// <param name="name">A wrapped name after it has had the opening and closing qualifiers stripped off e.g. "Fi``sh"</param>
+        /// <returns>The final runtime name unescaped e.g. "Fi`sh"</returns>
+        protected virtual string UnescapeWrappedNameBody(string name)
+        {
+            return name;
+        }
+
         public virtual bool TryGetRuntimeName(string s,out string name)
         {
             try

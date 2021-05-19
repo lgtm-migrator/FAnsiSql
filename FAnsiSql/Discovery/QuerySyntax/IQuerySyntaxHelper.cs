@@ -36,6 +36,25 @@ namespace FAnsi.Discovery.QuerySyntax
         IAggregateHelper AggregateHelper { get; }
         IUpdateHelper UpdateHelper { get; set; }
 
+        
+        /// <summary>
+        /// The character that is used to qualify database entity names e.g. "[" for "[My Table]"
+        /// </summary>
+        string OpenQualifier {get;}
+        /// <summary>
+        /// The character that is used to end qualifying database entity names e.g. "]" for "[My Table]".  For some DBMS this is the same as <see cref="OpenQualifier"/>
+        /// </summary>
+        string CloseQualifier {get;}
+
+        /// <summary>
+        /// Separator between table and column names (and database, schema etc).  Usually "."
+        /// </summary>
+        string DatabaseTableSeparator {get; }
+        /// <summary>
+        /// Characters which are not permitted in column names by FAnsi
+        /// </summary>
+        char[] IllegalNameChars { get; }
+
         char ParameterSymbol { get; }
 
         string GetRuntimeName(string s);
@@ -61,6 +80,12 @@ namespace FAnsi.Discovery.QuerySyntax
 
         string EnsureFullyQualified(string databaseName,string schemaName, string tableName);
         string EnsureFullyQualified(string databaseName, string schemaName,string tableName, string columnName, bool isTableValuedFunction = false);
+        
+        /// <summary>
+        /// Returns the given <paramref name="sql"/> escaped e.g. doubling up single quotes.  Does not add any wrapping.
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
         string Escape(string sql);
 
         TopXResponse HowDoWeAchieveTopX(int x);
