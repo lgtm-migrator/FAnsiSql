@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-18.04
     services:
       oci:
-        image: quillbuilduser/oracle-18-xe:latest
+        image: wnameless/oracle-xe-11g-r2
         ports:
           - 1521:1521
         options: --name=oci
