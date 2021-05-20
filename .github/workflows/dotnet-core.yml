@@ -7,6 +7,7 @@ env:
   MSSQL_SA_PASSWORD: "YourStrong!Passw0rd"
   ACCEPT_EULA: "Y"
   MSSQL_PID: "developer"
+  TZ: "GMT"
   
 jobs:  
   build:
@@ -14,7 +15,7 @@ jobs:
     runs-on: ubuntu-18.04
     services:
       oci:
-        image: wnameless/oracle-xe-11g-r2:latest
+        image: quillbuilduser/oracle-18-xe:latest
         ports:
           - 1521:1521
         options: --name=oci
